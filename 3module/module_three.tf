@@ -73,7 +73,7 @@ resource "aws_security_group" "allow_ssh" {
 #var.key_name is the key_name we are passing in from our variable file
 #security group is expected to be in a list so we have to have the []
 resource "aws_instance" "nginx" {
-  ami = data.aws.ami.aws-linux.id
+  ami = data.aws_ami.aws-linux.id
   instance_type = "t2.micro"
   key_name = var.key_name
   vpc_security_group_ids = [aws_security_group.allow_ssh.id]
