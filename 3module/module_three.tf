@@ -10,31 +10,31 @@ variable "region" {
 
 #PROVIDERS
 
- provider "aws" {
+provider "aws" {
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
-  region = var.region
- }
+  region     = var.region
+}
 
 #DATA
 #Below figures out what is the most recent AWS-LINUX AMI available
 
 data "aws_ami" "aws-linux" {
   most_recent = true
-  owners = ["amazon"]
+  owners      = ["amazon"]
 
   filter {
-    name = "name"
+    name   = "name"
     values = ["amzn-ami-hvm*"]
   }
 
   filter {
-    name = "root-device-type"
+    name   = "root-device-type"
     values = ["ebs"]
   }
 
   filter {
-    name = "virtualization-type"
+    name   = "virtualization-type"
     values = ["hvm"]
   }
 }
@@ -46,26 +46,26 @@ resource "aws_default_vpc" "default" {
 }
 
 resource "aws_security_group" "allow_ssh" {
-  name = "nginx_demo"
+  name        = "nginx_demo"
   description = "Allow ports for nginx demo"
-  vpc_id = aws_default_vpc.default.id
+  vpc_id      = aws_default_vpc.default.id
 
   ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks =["0.0.0.0/0"]
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
-    from_port = 80
-    to_port = 80
-    protocol = "tcp"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
   egress {
-    from_port = 0
-    to_port = 0
-    protocol = -1
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
@@ -73,22 +73,22 @@ resource "aws_security_group" "allow_ssh" {
 #var.key_name is the key_name we are passing in from our variable file
 #security group is expected to be in a list so we have to have the []
 resource "aws_instance" "nginx" {
-  ami = data.aws_ami.aws-linux.id
-  instance_type = "t2.micro"
-  key_name = var.key_name
+  ami                    = data.aws_ami.aws-linux.id
+  instance_type          = "t2.micro"
+  key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.allow_ssh.id]
-#connection below is to allow us to SSH into instance
-#self.public_ip is a way for us to get the IP address of this resource
-#file() for private_key is a function that gets the private key
+  #connection below is to allow us to SSH into instance
+  #self.public_ip is a way for us to get the IP address of this resource
+  #file() for private_key is a function that gets the private key
   connection {
-    type = "ssh"
-    host = self.public_ip
-    user = "ec2-user"
+    type        = "ssh"
+    host        = self.public_ip
+    user        = "ec2-user"
     private_key = file(var.private_key_path)
   }
-#provisioner below we ar eusing is remote-exec
-#it allows us to run commands like on a terminal in the instance
-#we are installing nginx and starting it
+  #provisioner below we ar eusing is remote-exec
+  #it allows us to run commands like on a terminal in the instance
+  #we are installing nginx and starting it
   provisioner "remote-exec" {
     inline = [
       "sudo yum install nginx -y",
